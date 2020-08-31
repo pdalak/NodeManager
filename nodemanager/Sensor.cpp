@@ -238,7 +238,7 @@ void Sensor::loop(MyMessage* message) {
 			// if a specific child is requested from receive(), skip all the others
 			if (message != nullptr && message->sensor != child->getChildId()) continue;
 			// send the value back to the controller
-			child->sendValue(message != nullptr);
+			child->sendValue(); // Do not force send value on any received message, message != nullptr
 		}
 		// restart the timer if over
 		if (_report_timer->isOver()) _report_timer->start();
