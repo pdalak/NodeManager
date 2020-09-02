@@ -83,6 +83,8 @@ public:
 	Sensor* getSensorWithChild(uint8_t child_id);
 	// sleep between send()
 	void sleepBetweenSend();
+	// sleep between retries
+	void sleepBetweenRetries();
 	// set the analog reference to the given value and optionally perform some fake reading on the given pin
 	void setAnalogReference(uint8_t value, uint8_t pin = 0);
 	// send the configured unit prefix just before sending the first measure (default: false)
@@ -104,6 +106,12 @@ public:
 	void setSleepBetweenSend(unsigned int value);
 	// [43] when sleep between send is set, by default the node will only wait, set it to true to make it sleeping for long intervals (default: false)
 	void setSleepBetweenSendSleepOrWait(bool value);
+	// [xx] optionally sleep interval in milliseconds between each retry message to the radio network, when retries are set(default: 0)
+	void setSleepBetweenRetries(unsigned int value);
+	// [xx] when sleep between retries is set, by default the node will only wait, set it to true to make it sleeping for long intervals (default: false)
+	void setSleepBetweenRetriesSleepOrWait(bool value);
+	// [xx] Skip remaining retries
+	void stopRetryingNow();
 	// [9] wake up the board
 	void wakeup();
 	// use smart sleep for sleeping boards (default: true)
@@ -190,6 +198,9 @@ private:
 	uint8_t _sleep_interrupt_pin = 0;
 	unsigned int _sleep_between_send = 0;
 	bool _sleep_between_send_sleep_or_wait = false;
+	unsigned int _sleep_between_retries = 0;
+	bool _sleep_between_retries_sleep_or_wait = false;
+	bool _continue_retrying = true;
 	unsigned long _report_interval_seconds = 10*60;
 	uint8_t _reboot_pin = 0;
 	void _present(uint8_t child_id, uint8_t type);

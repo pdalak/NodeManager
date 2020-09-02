@@ -211,13 +211,15 @@ void Child::sendValue(bool force) {
 		nodeManager.sendMessage(_child_id,V_UNIT_PREFIX,getUnitPrefix());
 		_unit_prefix_sent = true;
 	}
+	// reset the counters PD: Need to be before sending, becauce when wait between sends and retries are defined, and
+	// message is received, it would got into infinite loop
+	reset();
 	// send the value to the gateway
 	if (_format == INT) nodeManager.sendMessage(_child_id,_type,(int)_value);
 	if (_format == FLOAT) nodeManager.sendMessage(_child_id,_type,(float)_value,_float_precision);
 	if (_format == DOUBLE) nodeManager.sendMessage(_child_id,_type,_value,_float_precision);
 	if (_format == STRING) nodeManager.sendMessage(_child_id,_type,_value_string);
-	// reset the counters
-	reset();
+	
 }
 
 // print the child value to a device

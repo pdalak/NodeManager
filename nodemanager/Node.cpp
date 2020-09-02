@@ -72,6 +72,12 @@ void NodeManager::setSleepBetweenSend(unsigned int value) {
 void NodeManager::setSleepBetweenSendSleepOrWait(bool value) {
 	_sleep_between_send_sleep_or_wait = value;
 }
+void NodeManager::setSleepBetweenRetries(unsigned int value) {
+	_sleep_between_retries = value;
+}
+void NodeManager::setSleepBetweenRetriesSleepOrWait(bool value) {
+	_sleep_between_retries_sleep_or_wait = value;
+}
 #endif
 #if NODEMANAGER_INTERRUPTS == ON
 void NodeManager::setSleepInterruptPin(int8_t value) {
@@ -606,15 +612,24 @@ void NodeManager::loop() {
 		_message.setSensor(child_id);
 		_message.setType(type);
 		// send the message, multiple times if requested
-		for (int i = 0; i < _retries; i++) {
+		_continue_retrying = true;
+		for (int i = 0; i < _retries && _continue_retrying; i++) {
 			if (mGetPayloadType(_message) == P_INT16) { debug_verbose(PSTR(LOG_MSG "SEND(%d) t=%d p=%d\n"),_message.sensor,_message.type,_message.getInt()); }
 			if (mGetPayloadType(_message) == P_LONG32) { debug_verbose(PSTR(LOG_MSG "SEND(%d) t=%d p=%ld\n"),_message.sensor,_message.type,_message.getLong()); }
 			if (mGetPayloadType(_message) == P_FLOAT32) { debug_verbose(PSTR(LOG_MSG "SEND(%d) t=%d p=%d.%02d\n"),_message.sensor,_message.type,(unsigned int)_message.getFloat(), (unsigned int)(_message.getFloat()*100)%100); }
 			if (mGetPayloadType(_message) == P_STRING) { debug_verbose(PSTR(LOG_MSG "SEND(%d) t=%d p=%s\n"),_message.sensor,_message.type,_message.getString()); }
 			send(_message, _ack);
-			// if configured, sleep between each send
-			sleepBetweenSend();
+			//if _ack requested, wait time to receive ECHO and clear _contiunue_retring flag
+			if (_ack){
+				wait(MY_SMART_SLEEP_WAIT_DURATION_MS);		// listen for incoming messages
+			}
+			//if configured, sleep between each retry, as long as retry is required, except last retry
+			if(_continue_retrying && i < (_retries -1)){
+				sleepBetweenRetries();
+			}
 		}
+		// if configured, sleep between each send
+		sleepBetweenSend();
 	}
 
 #if NODEMANAGER_POWER_MANAGER == ON
@@ -777,6 +792,18 @@ void NodeManager::sleepBetweenSend() {
 	if (_sleep_between_send == 0) return;
 	if (_sleep_between_send_sleep_or_wait) sleepOrWait(_sleep_between_send);
 	else wait(_sleep_between_send);
+}
+
+// sleep between retries
+void NodeManager::sleepBetweenRetries() {
+	if (_sleep_between_retries == 0) return;
+	if (_sleep_between_retries_sleep_or_wait) sleepOrWait(_sleep_between_retries);
+	else wait(_sleep_between_retries);
+}
+
+// Skip remaining retries
+void NodeManager::stopRetryingNow(){
+	_continue_retrying = false;
 }
 
 // set the analog reference 
