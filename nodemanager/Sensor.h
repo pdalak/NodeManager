@@ -116,6 +116,7 @@ public:
 	// abstract functions, subclasses may implement
 	virtual void onSetup();
 	virtual void onLoop(Child* child);
+	virtual void afterSend(Child* child);
 	virtual void onReceive(MyMessage* message);
 	virtual void onInterrupt();
 #if NODEMANAGER_OTA_CONFIGURATION == ON

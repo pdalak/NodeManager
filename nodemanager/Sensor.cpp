@@ -239,6 +239,8 @@ void Sensor::loop(MyMessage* message) {
 			if (message != nullptr && message->sensor != child->getChildId()) continue;
 			// send the value back to the controller
 			child->sendValue(); // Do not force send value on any received message, message != nullptr
+			// call afterSend()
+			afterSend(child);
 		}
 		// restart the timer if over
 		if (_report_timer->isOver()) _report_timer->start();
@@ -339,6 +341,7 @@ bool Sensor::getEnabled() {
 void Sensor::onSetup(){
 }
 void Sensor::onLoop(Child* /*child*/){}
+void Sensor::afterSend(Child* /*child*/){}
 
 // by default when a child receive a REQ message and the type matches the type of the request, executes its onLoop function
 void Sensor::onReceive(MyMessage* message){
